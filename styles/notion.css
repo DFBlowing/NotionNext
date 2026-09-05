@@ -2202,6 +2202,19 @@ figure.notion-asset-wrapper.notion-asset-wrapper-video > div {
   padding: 0 16px;
 }
 
+/* Gallery列数控制：根据Notion的gallery_cover_size设置 */
+.notion-gallery-grid-size-small .notion-gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.notion-gallery-grid-size-medium .notion-gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.notion-gallery-grid-size-large .notion-gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
 /* Respect Notion Gallery's "Show page icon" view setting. */
 .notion-gallery-hide-page-icons .notion-gallery .notion-page-title-icon {
   display: none;
