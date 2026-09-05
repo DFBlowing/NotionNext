@@ -1,6 +1,6 @@
 import BLOG from '@/blog.config'
 import { siteConfig } from '@/lib/config'
-import { getGlobalData } from '@/lib/db/getSiteData'
+import { fetchGlobalAllData } from '@/lib/db/SiteDataApi'
 import { DynamicLayout } from '@/themes/theme'
 import { useRouter } from 'next/router'
 
@@ -29,7 +29,12 @@ const Search = props => {
     filteredPosts = []
   }
 
-  props = { ...props, posts: filteredPosts }
+  props = {
+    ...props,
+    posts: filteredPosts,
+    postCount: filteredPosts.length,
+    keyword: keyword || ''
+  }
 
   const theme = siteConfig('THEME', BLOG.THEME, props.NOTION_CONFIG)
   return <DynamicLayout theme={theme} layoutName='LayoutSearch' {...props} />
@@ -39,7 +44,7 @@ const Search = props => {
  * 浏览器前端搜索
  */
 export async function getStaticProps({ locale }) {
-  const props = await getGlobalData({
+  const props = await fetchGlobalAllData({
     from: 'search-props',
     locale
   })
