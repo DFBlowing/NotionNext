@@ -2203,16 +2203,32 @@ figure.notion-asset-wrapper.notion-asset-wrapper-video > div {
 }
 
 /* Gallery列数控制：根据Notion的gallery_cover_size设置 */
-.notion-gallery-grid-size-small .notion-gallery-grid {
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+/* Small size: 更多列（4-5列） */
+.notion-gallery-grid-size-small .notion-collection-view-type-gallery > div {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+  gap: 16px !important;
 }
 
-.notion-gallery-grid-size-medium .notion-gallery-grid {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+/* Medium size: 默认列数（3-4列） */
+.notion-gallery-grid-size-medium .notion-collection-view-type-gallery > div {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  gap: 16px !important;
 }
 
-.notion-gallery-grid-size-large .notion-gallery-grid {
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+/* Large size: 更少列（2-3列） */
+.notion-gallery-grid-size-large .notion-collection-view-type-gallery > div {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  gap: 16px !important;
+}
+
+/* 默认Gallery布局：如果没有size class，使用medium */
+.notion-collection-view-type-gallery > div {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  gap: 16px !important;
 }
 
 /* Respect Notion Gallery's "Show page icon" view setting. */
