@@ -65,13 +65,16 @@ Slug.propTypes = {
 export async function getStaticPaths() {
   return getStaticPathsBase({
     from: 'slug-paths',
+    includePageIds: true,
     filterFn: row => checkSlugHasNoSlash(row),
     mapPageToParams: row => ({ params: { prefix: row.slug } })
   })
 }
 
 export async function getStaticProps({ params: { prefix }, locale, revalidateReason }) {
-  if (!isStaticExport) {
+  // Next disallows build-time redirects for getStaticPaths entries.
+  // Seed ID pages with HTML so failed ISR lookups retain readable content.
+  if (!isStaticExport && revalidateReason !== 'build') {
     const redirect = await resolvePublishedPageIdRedirect({ pageId: prefix, locale })
     if (redirect) return redirect
   }

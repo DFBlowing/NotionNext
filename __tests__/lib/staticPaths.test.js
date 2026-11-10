@@ -152,11 +152,12 @@ describe('staticPaths build helpers', () => {
     })
   })
 
-  it('prebuilds all published canonical pages without including draft, invisible or ID aliases', async () => {
+  it('prebuilds canonical and public ID entry points without draft, invisible or protected ID aliases', async () => {
     require('@/blog.config').PRE_RENDER_ALL_PUBLISHED = true
     isExport.mockReturnValue(false)
     const idA = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
     const idB = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+    const idC = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
     fetchGlobalAllData.mockResolvedValue({
       allPages: [
         {
@@ -177,7 +178,7 @@ describe('staticPaths build helpers', () => {
         { id: 'hidden', slug: 'invisible', type: 'Page', status: 'Invisible' },
         { id: 'menu', slug: 'menu', type: 'Menu', status: 'Published' },
         {
-          id: 'locked',
+          id: idC,
           slug: 'locked',
           type: 'Page',
           status: 'Published',
@@ -189,13 +190,16 @@ describe('staticPaths build helpers', () => {
     await jest.isolateModulesAsync(async () => {
       const { getStaticPathsBase } = require('@/lib/build/staticPaths')
       const result = await getStaticPathsBase({
+        includePageIds: true,
         filterFn: page => !page.slug.includes('/'),
         mapPageToParams: page => ({ params: { prefix: page.slug } })
       })
       expect(result).toEqual({
         paths: [
           { params: { prefix: 'about' } },
-          { params: { prefix: 'locked' } }
+          { params: { prefix: 'locked' } },
+          { params: { prefix: idA.replace(/-/g, '') } },
+          { params: { prefix: idB.replace(/-/g, '') } }
         ],
         fallback: 'blocking'
       })
