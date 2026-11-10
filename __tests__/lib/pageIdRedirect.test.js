@@ -1,6 +1,7 @@
 /** @jest-environment node */
 import { resolvePublishedPageIdRedirect } from '@/lib/server/pageIdRedirect'
 import { fetchGlobalAllData } from '@/lib/db/SiteDataApi'
+import { validateHeaderValue } from 'http'
 
 jest.mock('@/lib/db/SiteDataApi', () => ({ fetchGlobalAllData: jest.fn() }))
 const id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
@@ -30,6 +31,7 @@ it.each([
   { password: 'protected' },
   { type: 'Menu' },
   { href: '//untrusted.invalid' },
+  { href: '/\\untrusted.invalid' },
   { href: 'https://untrusted.invalid' },
   { href: `/${id.replace(/-/g, '')}` }
 ])(
@@ -46,3 +48,20 @@ it('does not turn an unavailable database into a cached redirect', async () => {
     'temporarily unavailable'
   )
 })
+
+it.each([
+  '/技术分享/sr-paper',
+  '/%E6%8A%80%E6%9C%AF%E5%88%86%E4%BA%AB/pytorch-ins'
+])(
+  'returns a valid HTTP Location for the canonical path %s without double encoding',
+  async href => {
+    fetchGlobalAllData.mockResolvedValue({ allPages: [{ ...page, href }] })
+    const result = await resolvePublishedPageIdRedirect({ pageId: id })
+    expect(() =>
+      validateHeaderValue('Location', result.redirect.destination)
+    ).not.toThrow()
+    expect(result.redirect.destination).toBe(
+      new URL(href, 'https://site.invalid').pathname
+    )
+  }
+)
