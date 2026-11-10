@@ -1,3 +1,4 @@
+import { getPublicPostBlockMap } from '@/lib/utils/publicPost'
 import BLOG from '@/blog.config'
 import { siteConfig } from '@/lib/config'
 import { fetchGlobalAllData, getPostBlocks } from '@/lib/db/SiteDataApi'
@@ -31,6 +32,10 @@ export async function getStaticPaths({ locale }) {
 }
 
 export async function getStaticProps({ params: { page }, locale }) {
+  if (!/^[1-9]\d*$/.test(page) || !Number.isSafeInteger(Number(page))) {
+    return { notFound: true }
+  }
+
   const from = `page-${page}`
   const props = await fetchGlobalAllData({ from, locale })
   const { allPages } = props
@@ -44,6 +49,10 @@ export async function getStaticProps({ params: { page }, locale }) {
     page => page.type === 'Post' && page.status === 'Published'
   )
   const POSTS_PER_PAGE = siteConfig('POSTS_PER_PAGE', 12, props?.NOTION_CONFIG)
+  if (Number(page) > Math.ceil(allPosts.length / POSTS_PER_PAGE)) {
+    return { notFound: true }
+  }
+
   // 处理分页
   props.posts = allPosts.slice(
     POSTS_PER_PAGE * (page - 1),
@@ -59,7 +68,7 @@ export async function getStaticProps({ params: { page }, locale }) {
         continue
       }
       const rawBlockMap = await getPostBlocks(post.id, 'slug', POST_PREVIEW_LINES)
-      post.blockMap = adapterNotionBlockMap(rawBlockMap)
+      post.blockMap = getPublicPostBlockMap(post, adapterNotionBlockMap(rawBlockMap), props.allPages)
       if (post.blockMap?.block) {
         post.blockMap.block = formatNotionBlock(post.blockMap.block)
       }

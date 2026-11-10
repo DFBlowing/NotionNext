@@ -11,7 +11,11 @@ describe('getNotionAPI', () => {
     process.env = originalEnv
   })
 
-  it('sets the current Notion API host and User-Agent for notion-client', async () => {
+  it.each([
+    'https://app.notion.com/api/v3',
+    'https://df-sharings.notion.site/api/v3'
+  ])('uses the configured Notion API host %s and User-Agent', async apiBaseUrl => {
+    process.env.API_BASE_URL = apiBaseUrl
     const NotionAPI = jest.fn().mockImplementation(() => ({
       getPage: jest.fn().mockResolvedValue({})
     }))
@@ -22,7 +26,7 @@ describe('getNotionAPI', () => {
 
     expect(NotionAPI).toHaveBeenCalledWith(
       expect.objectContaining({
-        apiBaseUrl: 'https://app.notion.com/api/v3',
+        apiBaseUrl,
         ofetchOptions: {
           headers: {
             'User-Agent': 'NotionNext (+https://github.com/NotionNext/NotionNext)'

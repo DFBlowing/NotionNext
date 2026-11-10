@@ -131,7 +131,8 @@ const preBuild = (function () {
 })()
 
 function isVersionedPageBlockCacheKey(key) {
-  return /^page_block_.+_\d{10,}$/.test(String(key || ''))
+  const unscopedKey = String(key || '').replace(/^(?:0|[a-f0-9-]{36}):/i, '')
+  return /^page_block_.+_\d{10,}$/.test(unscopedKey)
 }
 
 function pruneTransientNotionDataCache(dataDir) {
@@ -255,6 +256,18 @@ const nextConfig = {
     ? undefined
     : () => {
       return [
+        // Keep previously published URLs working after slug configuration changes.
+        { source: '/page/about', destination: '/about', permanent: true },
+        {
+          source: '/programming',
+          destination: `/${encodeURIComponent('其他页面')}/programming`,
+          permanent: true
+        },
+        ...['sr-paper', 'pytorch-ins'].map(slug => ({
+          source: `/skill/${slug}`,
+          destination: `/${encodeURIComponent('技术分享')}/${slug}`,
+          permanent: true
+        })),
         {
           source: '/feed',
           destination: '/rss/feed.xml',
