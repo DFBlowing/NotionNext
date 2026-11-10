@@ -1,3 +1,8 @@
+jest.mock('@/blog.config', () => ({
+  NOTION_PAGE_ID: 'root',
+  PRE_RENDER_ALL_PUBLISHED: false
+}))
+
 jest.mock('@/lib/cache/cache_manager', () => ({
   getOrSetDataWithCache: jest.fn()
 }))
@@ -17,12 +22,16 @@ jest.mock('@/lib/utils/buildMode', () => ({
 
 const { getOrSetDataWithCache } = require('@/lib/cache/cache_manager')
 const { fetchGlobalAllData } = require('@/lib/db/SiteDataApi')
-const { getPriorityPages, prefetchAllBlockMaps } = require('@/lib/build/prefetch')
+const {
+  getPriorityPages,
+  prefetchAllBlockMaps
+} = require('@/lib/build/prefetch')
 const { isExport } = require('@/lib/utils/buildMode')
 
 describe('staticPaths build helpers', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    require('@/blog.config').PRE_RENDER_ALL_PUBLISHED = false
 
     getOrSetDataWithCache.mockImplementation((_key, loader) => loader())
   })
@@ -78,7 +87,13 @@ describe('staticPaths build helpers', () => {
       allPages: [
         { id: '1', slug: 'about', type: 'Page', status: 'Published' },
         { id: '2', slug: 'post/hello', type: 'Post', status: 'Published' },
-        { id: '3', slug: 'locked', type: 'Post', status: 'Published', password: 'protected' }
+        {
+          id: '3',
+          slug: 'locked',
+          type: 'Post',
+          status: 'Published',
+          password: 'protected'
+        }
       ]
     })
 
@@ -95,7 +110,10 @@ describe('staticPaths build helpers', () => {
         { id: '2', slug: 'post/hello', type: 'Post', status: 'Published' }
       ])
       expect(result).toEqual({
-        paths: [{ params: { prefix: 'about' } }, { params: { prefix: 'locked' } }],
+        paths: [
+          { params: { prefix: 'about' } },
+          { params: { prefix: 'locked' } }
+        ],
         fallback: false
       })
     })
@@ -131,6 +149,65 @@ describe('staticPaths build helpers', () => {
         paths: [{ params: { prefix: 'post', slug: 'hello' } }],
         fallback: 'blocking'
       })
+    })
+  })
+
+  it('prebuilds all published canonical pages without including draft, invisible or ID aliases', async () => {
+    require('@/blog.config').PRE_RENDER_ALL_PUBLISHED = true
+    isExport.mockReturnValue(false)
+    const idA = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+    const idB = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+    fetchGlobalAllData.mockResolvedValue({
+      allPages: [
+        {
+          id: idA,
+          slug: 'about',
+          href: '/about',
+          type: 'Page',
+          status: 'Published'
+        },
+        {
+          id: idB,
+          slug: 'learning/long',
+          href: '/learning/long',
+          type: 'Post',
+          status: 'Published'
+        },
+        { id: 'private', slug: 'draft', type: 'Page', status: 'Draft' },
+        { id: 'hidden', slug: 'invisible', type: 'Page', status: 'Invisible' },
+        { id: 'menu', slug: 'menu', type: 'Menu', status: 'Published' },
+        {
+          id: 'locked',
+          slug: 'locked',
+          type: 'Page',
+          status: 'Published',
+          password: 'protected'
+        }
+      ]
+    })
+    getPriorityPages.mockReturnValue([])
+    await jest.isolateModulesAsync(async () => {
+      const { getStaticPathsBase } = require('@/lib/build/staticPaths')
+      const result = await getStaticPathsBase({
+        filterFn: page => !page.slug.includes('/'),
+        mapPageToParams: page => ({ params: { prefix: page.slug } })
+      })
+      expect(result).toEqual({
+        paths: [
+          { params: { prefix: 'about' } },
+          { params: { prefix: 'locked' } }
+        ],
+        fallback: 'blocking'
+      })
+      const nested = await getStaticPathsBase({
+        filterFn: page => page.slug.includes('/'),
+        mapPageToParams: page => ({
+          params: { prefix: 'learning', slug: page.slug.split('/')[1] }
+        })
+      })
+      expect(nested.paths).toEqual([
+        { params: { prefix: 'learning', slug: 'long' } }
+      ])
     })
   })
 })

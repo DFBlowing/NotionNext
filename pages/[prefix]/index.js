@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
 import { getStaticPathsBase } from '@/lib/build/staticPaths'
 import { isExport } from '@/lib/utils/buildMode'
+import { resolvePublishedPageIdRedirect } from '@/lib/server/pageIdRedirect'
 
 const isStaticExport = process.env.EXPORT === 'true'
 
@@ -70,6 +71,11 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params: { prefix }, locale, revalidateReason }) {
+  if (!isStaticExport) {
+    const redirect = await resolvePublishedPageIdRedirect({ pageId: prefix, locale })
+    if (redirect) return redirect
+  }
+
   const props = await resolvePostProps({
     prefix,
     locale,
