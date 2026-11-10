@@ -11,6 +11,9 @@ import {
 import { extractLangId, extractLangPrefix } from '@/lib/utils/pageId'
 import { getServerSideSitemap } from 'next-sitemap'
 
+// The Notion index read can exceed the legacy 10-second function budget.
+export const config = { maxDuration: 60 }
+
 export const getServerSideProps = async ctx => {
   let fields = []
   const siteIds = BLOG.NOTION_PAGE_ID.split(',')
@@ -38,7 +41,7 @@ export const getServerSideProps = async ctx => {
   // 缓存
   ctx.res.setHeader(
     'Cache-Control',
-    'public, max-age=3600, stale-while-revalidate=59'
+    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=59'
   )
   return getServerSideSitemap(ctx, fields)
 }
