@@ -8,6 +8,9 @@ import { checkSlugHasOneSlash } from '@/lib/utils/post'
 
 const isStaticExport = process.env.EXPORT === 'true'
 
+// Apply the same ISR budget to content served through category paths.
+export const config = { maxDuration: 60 }
+
 /**
  * 根据notion的slug访问页面
  * 解析二级目录 /article/about

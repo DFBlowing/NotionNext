@@ -8,6 +8,9 @@ import Slug from '..'
 
 const isStaticExport = process.env.EXPORT === 'true'
 
+// Nested Notion pages need the same cold-render budget as other articles.
+export const config = { maxDuration: 60 }
+
 /**
  * 根据notion的slug访问页面
  * 解析三级以上目录 /article/2023/10/29/test

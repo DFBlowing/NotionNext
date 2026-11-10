@@ -15,6 +15,9 @@ import { isExport } from '@/lib/utils/buildMode'
 
 const isStaticExport = process.env.EXPORT === 'true'
 
+// Large Notion pages can exceed Vercel's legacy 10-second ISR limit.
+export const config = { maxDuration: 60 }
+
 /**
  * 根据notion的slug访问页面
  * 只解析一级目录例如 /about
