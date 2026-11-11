@@ -23,7 +23,10 @@ const SEO = props => {
   let image
   const router = useRouter()
   const meta = getSEOMeta(props, router, useGlobal()?.locale)
-  const webFontUrl = siteConfig('FONT_URL')
+  const webFontUrl = filterWebFontUrls(
+    siteConfig('FONT_URL'),
+    siteConfig('SKIP_GOOGLE_FONTS', true)
+  )
   const hasWebFontUrl = Array.isArray(webFontUrl)
     ? webFontUrl.filter(Boolean).length > 0
     : Boolean(webFontUrl)
@@ -368,6 +371,30 @@ const containsGoogleFontsUrl = fontUrl => {
       return false
     }
   })
+}
+
+/**
+ * 过滤掉 Google 托管的网页字体。
+ *
+ * 站点面向境内访客，fonts.googleapis.com 经常超时，而 WebFontLoader 会在
+ * 首屏 1.5 秒之后才注入这些样式表：能连上时字体迟到并触发一次大面积重排
+ * （CLS），连不上时白白占用连接和带宽。西文 Bitter 已改为本站自托管，
+ * 中文使用系统字体，所以这些条目没有收益。需要恢复时把配置中心或环境变量
+ * SKIP_GOOGLE_FONTS 设为 false 即可。
+ */
+const filterWebFontUrls = (fontUrl, skipGoogleFonts) => {
+  if (skipGoogleFonts === false || skipGoogleFonts === 'false') {
+    return fontUrl
+  }
+  const urls = Array.isArray(fontUrl) ? fontUrl : [fontUrl]
+  const kept = urls.filter(Boolean).filter(url => {
+    try {
+      return new URL(url).hostname !== 'fonts.googleapis.com'
+    } catch {
+      return true
+    }
+  })
+  return kept
 }
 
 const getAbsoluteImageUrl = (image, siteUrl) => {

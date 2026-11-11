@@ -94,6 +94,45 @@ const getThemeExport = (mod, exportName) => {
   return null
 }
 
+// 布局组件必须在模块作用域创建，Pages Router 的 SSR 才会预热并输出真实正文；
+// 在渲染函数里 dynamic() 会让 SSR 只能渲染 loading 骨架，正文要等客户端 JS 执行后才出现。
+// @active-theme 由 next.config.js 指向 themes/<BLOG.THEME>，是可被编译期解析的静态别名。
+const SSR_LAYOUT_NAMES = [
+  'LayoutBase',
+  'LayoutIndex',
+  'LayoutSlug',
+  'Layout404',
+  'LayoutArchive',
+  'LayoutCategoryIndex',
+  'LayoutPostList',
+  'LayoutSearch',
+  'LayoutTagIndex'
+]
+
+const loadActiveThemeLayout = (layoutName, emptyLayout) => () =>
+  import('@active-theme').then(mod => ({
+    default:
+      getThemeExport(mod, layoutName) ||
+      (layoutName === 'LayoutBase'
+        ? emptyLayout
+        : getThemeExport(mod, 'LayoutSlug') || emptyLayout)
+  }))
+
+const ACTIVE_THEME_NAME = normalizeThemeName(BLOG.THEME)
+const activeThemeLayouts = {}
+SSR_LAYOUT_NAMES.forEach(layoutName => {
+  activeThemeLayouts[layoutName] = dynamic(
+    loadActiveThemeLayout(
+      layoutName,
+      layoutName === 'LayoutBase' ? EmptyBaseLayout : EmptyPageLayout
+    ),
+    { ssr: true, loading: getLayoutLoading(layoutName) }
+  )
+})
+
+const getActiveThemeLayout = layoutName =>
+  activeThemeLayouts[layoutName] || null
+
 const scheduleFixThemeDOM = (delay = 120) => {
   if (!isBrowser) return
   if (domFixTimer) {
@@ -191,6 +230,13 @@ const getCurrentTheme = (router, fallbackTheme) => {
  */
 export const getBaseLayoutByTheme = theme => {
   const normalizedTheme = normalizeThemeName(theme)
+  if (normalizedTheme === ACTIVE_THEME_NAME) {
+    const staticBase = getActiveThemeLayout('LayoutBase')
+    if (staticBase) {
+      baseLayoutCache.set(normalizedTheme, staticBase)
+      return staticBase
+    }
+  }
   if (baseLayoutCache.has(normalizedTheme)) {
     return baseLayoutCache.get(normalizedTheme)
   }
@@ -223,6 +269,14 @@ export const useLayoutByTheme = ({ layoutName, theme }) => {
   const router = useRouter()
   const themeQuery = getCurrentTheme(router, theme)
   const cacheKey = `${themeQuery}:${layoutName}`
+
+  if (themeQuery === ACTIVE_THEME_NAME) {
+    const staticLayout = getActiveThemeLayout(layoutName)
+    if (staticLayout) {
+      scheduleFixThemeDOM(router?.asPath?.includes('theme=') ? 240 : 80)
+      return staticLayout
+    }
+  }
 
   if (layoutByThemeCache.has(cacheKey)) {
     scheduleFixThemeDOM(themeQuery === BLOG.THEME ? 80 : 240)

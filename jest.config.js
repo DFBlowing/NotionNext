@@ -18,6 +18,8 @@ const customJestConfig = {
     // 与 next.config.js 的 webpack alias 保持一致：主题组件里 import 的
     // lodash.throttle 实际是仓库内置的轻量节流实现
     '^lodash.throttle$': '<rootDir>/lib/utils/throttle.js',
+    // 与 next.config.js 的 @active-theme 一致：编译期可解析的活动主题目录
+    '^@active-theme$': `<rootDir>/themes/${require('./blog.config').THEME}`,
     '^@/(.*)$': '<rootDir>/$1',
     '^@/components/(.*)$': '<rootDir>/components/$1',
     '^@/lib/(.*)$': '<rootDir>/lib/$1',

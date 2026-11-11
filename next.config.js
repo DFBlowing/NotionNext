@@ -426,6 +426,13 @@ const nextConfig = {
 
     // 动态主题：添加 resolve.alias 配置，将动态路径映射到实际路径
     config.resolve.alias['@'] = path.resolve(__dirname)
+    // 编译期可解析的活动主题，供 themes/theme.js 在模块作用域预热布局，
+    // 否则 SSR 只能输出 loading 骨架，正文要等客户端 JS 执行后才出现。
+    config.resolve.alias['@active-theme'] = path.resolve(
+      __dirname,
+      'themes',
+      BLOG.THEME
+    )
     config.resolve.alias['lodash.throttle'] = path.resolve(
       __dirname,
       'lib/utils/throttle.js'

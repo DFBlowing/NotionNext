@@ -50,6 +50,16 @@ class MyDocument extends Document {
           <link rel='preconnect' href='https://images.unsplash.com' />
           <link rel='dns-prefetch' href='//images.unsplash.com' />
 
+          {/* Bitter 是标题字体，首页 h1 就是 LCP 元素；
+              不预加载的话字体晚到会触发一次重绘，把 LCP 记到字体替换的那一刻。 */}
+          <link
+            rel='preload'
+            href='/fonts/bitter/bitter-latin.woff2'
+            as='font'
+            type='font/woff2'
+            crossOrigin='anonymous'
+          />
+
           {/* 预加载字体 */}
           {BLOG.FONT_AWESOME && (
             <>
@@ -69,15 +79,11 @@ class MyDocument extends Document {
                     type='font/woff2'
                     crossOrigin='anonymous'
                   />
-                  <link
-                    rel='preload'
-                    href='/vendor/fontawesome/webfonts/fa-brands-400.woff2'
-                    as='font'
-                    type='font/woff2'
-                    crossOrigin='anonymous'
-                  />
+                  {/* fa-brands 只用于页脚/侧栏的品牌图标，不预加载：
+                      它把 110KB 的字体挤到首屏关键路径上。 */}
                 </>
               )}
+
               <style
                 dangerouslySetInnerHTML={{
                   __html:

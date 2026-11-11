@@ -24,6 +24,10 @@ module.exports = {
   // 字体优化
   FONT_DISPLAY: process.env.NEXT_PUBLIC_FONT_DISPLAY || 'swap',
   PRELOAD_FONTS: process.env.NEXT_PUBLIC_PRELOAD_FONTS || true,
+  // 跳过 Google 托管的网页字体（fonts.googleapis.com）。站点面向境内访客，
+  // 该域名经常超时；西文 Bitter 已自托管在 public/fonts/bitter。
+  // 设为 false 可恢复加载配置中心里填写的 Google 字体。
+  SKIP_GOOGLE_FONTS: process.env.NEXT_PUBLIC_SKIP_GOOGLE_FONTS !== 'false',
   
   // 第三方脚本优化
   DEFER_THIRD_PARTY_SCRIPTS: process.env.NEXT_PUBLIC_DEFER_THIRD_PARTY_SCRIPTS || true,

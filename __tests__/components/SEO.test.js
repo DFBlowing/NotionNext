@@ -30,9 +30,12 @@ const baseSiteConfig = {
   TITLE: 'Example Blog'
 }
 
-const renderSeo = fontUrl => {
+const renderSeo = (fontUrl, extraConfig = {}) => {
   siteConfig.mockImplementation((key, defaultVal) => {
     if (key === 'FONT_URL') return fontUrl
+    if (Object.prototype.hasOwnProperty.call(extraConfig, key)) {
+      return extraConfig[key]
+    }
     return Object.prototype.hasOwnProperty.call(baseSiteConfig, key)
       ? baseSiteConfig[key]
       : defaultVal
@@ -163,10 +166,24 @@ describe('SEO font resource hints', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('emits Google Fonts hints for Google font URLs', () => {
+  it('drops Google font URLs before emitting hints by default', () => {
     const { container } = renderSeo([
       'https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap'
     ])
+
+    expect(
+      container.querySelector('link[href="//fonts.googleapis.com"]')
+    ).not.toBeInTheDocument()
+    expect(
+      container.querySelector('link[href="https://fonts.gstatic.com"]')
+    ).not.toBeInTheDocument()
+  })
+
+  it('emits Google Fonts hints for Google font URLs when SKIP_GOOGLE_FONTS is off', () => {
+    const { container } = renderSeo(
+      ['https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap'],
+      { SKIP_GOOGLE_FONTS: false }
+    )
 
     expect(
       container.querySelector('link[href="//fonts.googleapis.com"]')
