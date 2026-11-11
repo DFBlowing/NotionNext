@@ -43,9 +43,10 @@ const BlogPostCard = ({ index, post, showSummary, siteInfo }) => {
             <SmartLink href={post?.href}>
               <>
                 <LazyImage
-                  // 首屏前几张卡片直接给真实 src 并 eager 加载：懒加载要等 JS
-                  // 执行后才发请求，会把列表页的 LCP 图片拖到数秒之后。
-                  priority={index < 3}
+                  // 线上实测：把前 3 张卡片都设成 eager 后，手机 4G 下首页 LCP
+                  // 从 6.7–7.5s 退到 8.2–9.0s——预加载的封面图抢了 hero 封面的带宽。
+                  // 只保留原有一张，别再扩大优先级。
+                  priority={index === 1}
                   alt={post?.title}
                   src={post?.pageCoverThumbnail}
                   className='h-56 w-full object-cover object-center group-hover:scale-110 duration-500'
