@@ -14,6 +14,7 @@ jest.mock('@/components/NotionLink', () => () => null)
 jest.mock('@/components/OriginalityProof', () => () => null)
 jest.mock('react-notion-x', () => ({
   NotionRenderer: ({ recordMap }) => <>
+    {recordMap.signed_urls?.file && <a data-testid='file-link' href={recordMap.signed_urls.file}>下载附件</a>}
     {recordMap.images.map(image => (
       // eslint-disable-next-line @next/next/no-img-element
       <img key={image.id} alt={image.id} src={image.src} data-zoom-src={image.zoomSrc} />
@@ -31,6 +32,23 @@ const imagePost = (src = proxyImage('photo-test')) => ({
 const sourceWidth = image => new URL(
   decodeURIComponent(new URL(image).pathname.split('/image/')[1])
 ).searchParams.get('width')
+
+test('the article renderer receives stable URLs even from a stale prefetched post', () => {
+  const expired = 'https://file.notion.com/f/f/space/upload/archive.zip?expirationTimestamp=1'
+  const post = { ...imagePost(), blockMap: { images: [], block: {
+    file: { value: { id: 'file', type: 'file', properties: { source: [[expired]] } } }
+  }, signed_urls: { file: expired } } }
+  const { rerender } = render(<NotionPage post={post} />)
+  expect(screen.getByTestId('file-link').href).toContain('https://notion.so/signed/attachment%3Aupload%3Aarchive.zip')
+  expect(screen.getByTestId('file-link').href).not.toContain('expirationTimestamp')
+  expect(post.blockMap.signed_urls.file).toBe(expired)
+  const external = { ...post, blockMap: { ...post.blockMap,
+    block: { file: { value: { id: 'file', type: 'file', properties: { source: [['https://example.com/archive.zip']] } } } },
+    signed_urls: { file: 'https://example.com/archive.zip' }
+  } }
+  rerender(<NotionPage post={external} />)
+  expect(screen.getByTestId('file-link').href).toBe('https://example.com/archive.zip')
+})
 
 let clones
 let zooms

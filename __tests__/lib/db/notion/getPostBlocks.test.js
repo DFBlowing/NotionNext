@@ -321,6 +321,22 @@ describe('formatNotionBlock', () => {
     )
   })
 
+  it('keeps unsigned URLs from triggering an expired-signature refresh', () => {
+    expect(hasExpiredSignedUrls({ signed_urls: {
+      file: 'https://notion.so/signed/attachment%3Afile%3Aarchive.zip?table=block&id=file'
+    } })).toBe(false)
+  })
+
+  it.each(['file', 'audio', 'video'])('uses stable entries for cached %s downloads', type => {
+    const source = 'https://notion.so/signed/attachment%3Afile%3Aarchive.zip?table=block&id=file'
+    const recordMap = {
+      signed_urls: { file: 'https://file.notion.com/f/f/space/file/archive.zip?expirationTimestamp=1' },
+      block: { file: { value: { id: 'file', type, properties: { source: [[source]] } } } }
+    }
+    preferStablePdfSignedUrls(recordMap)
+    expect(recordMap.signed_urls.file).toBe(source)
+  })
+
   it.each(['tab', 'tabs'])(
     'maps Notion %s containers to internal tabs embeds',
     originalType => {
