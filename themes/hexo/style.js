@@ -88,6 +88,10 @@ const Style = () => {
         color: var(--hexo-color-text-secondary);
       }
 
+      #theme-hexo .footer-filing a {
+        color: var(--theme-color);
+      }
+
       /*  菜单下划线动画 */
       #theme-hexo .menu-link {
         text-decoration: none;

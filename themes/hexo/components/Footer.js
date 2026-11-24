@@ -22,8 +22,8 @@ const Footer = ({ title }) => {
           {siteConfig('AUTHOR')}
         </a>
         .<br />
-        <BeiAnSite />
-        <BeiAnGongAn />
+        <BeiAnSite className='footer-filing' />
+        <BeiAnGongAn className='footer-filing' />
         <span className='hidden busuanzi_container_site_pv'>
           <i className='fas fa-eye' />
           <span className='px-1 busuanzi_value_site_pv'> </span>
