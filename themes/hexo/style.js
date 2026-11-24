@@ -90,6 +90,11 @@ const Style = () => {
 
       #theme-hexo .footer-filing a {
         color: var(--theme-color);
+        color: color-mix(in srgb, var(--theme-color) 55%, var(--hexo-color-text));
+      }
+
+      .dark #theme-hexo .footer-filing a {
+        color: var(--theme-color);
       }
 
       /*  菜单下划线动画 */
