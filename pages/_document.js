@@ -113,6 +113,7 @@ class MyDocument extends Document {
         </Head>
 
         <body>
+          <script defer data-track-spa='' src='https://projects.xiaoyuezhou.top/remember/site-analytics.js' />
           <Main />
           <NextScript />
         </body>
