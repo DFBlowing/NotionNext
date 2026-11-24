@@ -90,7 +90,7 @@ const Style = () => {
 
       #theme-hexo .footer-filing a {
         color: var(--theme-color);
-        color: color-mix(in srgb, var(--theme-color) 55%, var(--hexo-color-text));
+        color: color-mix(in srgb, var(--theme-color) 65%, black);
       }
 
       .dark #theme-hexo .footer-filing a {
